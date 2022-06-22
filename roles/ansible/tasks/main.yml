@@ -16,7 +16,7 @@
 - name: Copy ansible.cfg 
   copy:
     src: ansible.cfg
-    dest: /home/ec2-user/ansible.cfg
+    dest: /home/ec2-user/.ansible.cfg
     owner: ec2-user
     group: ec2-user
     mode: 0755
