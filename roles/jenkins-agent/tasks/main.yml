@@ -31,6 +31,9 @@
   shell: "wget {{ JENKINS_MASTER_URL }}:8080/jnlpJars/jenkins-cli.jar"
 
 - name: Reload Configuration
+  shell: "java -jar jenkins-cli.jar -s http://{{ JENKINS_MASTER_URL }}:8080 -webSocket -auth {{ USER }}:{{ PASS }} reload-configuration"
+
+- name: Reload JCASC Configuration
   shell: "java -jar jenkins-cli.jar -s http://{{ JENKINS_MASTER_URL }}:8080 -webSocket -auth {{ USER }}:{{ PASS }} reload-jcasc-configuration"
 
 - name: Install aws-cli
