@@ -1,6 +1,12 @@
 ---
 # tasks file for common-setup-role
 #
+- name: Ensure ansible is installed
+  yum:
+    name: "ansible"
+    state: latest
+    update_cache: yes
+    
 - name: Set Hostname
   hostname:
     name: "{{ inventory_hostname }}"

@@ -1,0 +1,47 @@
+---
+# tasks file for docker
+
+- name: Download the kubectl bundle
+  get_url:
+    url : https://s3.us-west-2.amazonaws.com/amazon-eks/1.22.6/2022-03-09/bin/linux/amd64/kubectl
+    dest: /usr/bin/kubectl
+
+- name: Download the kubectl bundle
+  get_url:
+    url : https://s3.us-west-2.amazonaws.com/amazon-eks/1.22.6/2022-03-09/bin/linux/amd64/kubectl.sha256
+    dest: /usr/bin/kubectl.sha256
+
+- name: Install kubectl
+  become: true
+  shell:  |
+   chmod +x /usr/bin/kubectl
+   openssl sha1 -sha256 kubectl
+   export PATH="/usr/bin:$PATH"
+   source ~/.bashrc
+   kubectl version --short --client
+
+
+- name: Download the eksctl bundle
+  get_url:
+    url : https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz
+    dest: /tmp/eksctl.tar.gz
+
+
+- name: Unarchive the installer
+  unarchive:
+    src: /tmp/eksctl.tar.gz
+    dest: /usr/bin
+    copy: no
+
+- name: Install eksctl
+  become: false
+  shell:  |
+   export PATH="/usr/bin:$PATH"
+   eksctl version
+
+- name: Get a kubeconfig for our cluster
+  become: false
+  shell:  |
+    EKS_CLUSTER_NAME=$(aws eks list-clusters --region us-east-1 --query clusters[0] --output text)
+    aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region us-east-1
+

@@ -1,0 +1,49 @@
+---
+# tasks file for docker
+
+- name: Remove aws-cli 1
+  file:
+    state: absent
+    path: /usr/bin/aws
+
+- name: Download the awscli bundle
+  get_url:
+    url : https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    dest: /tmp/aws.zip
+
+- name: Unarchive the installer
+  unarchive:
+    src: /tmp/aws.zip
+    dest: /tmp
+    copy: no
+
+- pause: seconds=3
+
+- name: Install awscli package
+  become: true
+  shell: |
+    pwd
+    whoami
+    /tmp/aws/install -b /usr/bin
+    export PATH="/usr/local/bin:$PATH"
+    source ~/.bashrc
+    aws --version
+
+- name: Configure AWS
+  become: false
+  shell: aws configure set {{ item.key }} {{ item.value }} --profile {{ aws_profile }}
+  #no_log: True
+  with_dict:
+    aws_access_key_id: "{{ aws_access_key }}"
+    aws_secret_access_key: "{{ aws_secret_key }}"
+    region: "{{ aws_region }}"
+    format: "{{ aws_format }}"
+    become_user: "{{ aws_system_user }}"
+    changed_when: false
+  vars:
+    aws_region: "us-east-1"
+    aws_format: "json"
+    aws_profile: "default"
+    aws_system_user: "ec2-user"
+
+

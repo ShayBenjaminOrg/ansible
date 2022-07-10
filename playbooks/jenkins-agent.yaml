@@ -11,6 +11,9 @@
     - ../roles/jenkins-agent
     - ../roles/ansible
     - ../roles/jenkins-agent-cloud
+    - ../roles/awscli2
+    - ../roles/k8s
+
 
   tasks:
     

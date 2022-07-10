@@ -1,36 +1,65 @@
 ---
 # tasks file for common-setup-role
 #
-- name : "Create Groups"
-  group:
-    name: "{{item}}"
-    state: "present" 
-  with_items:
-    - sudo
+# - name : "Create Groups"
+#   group:
+#     name: "{{item}}"
+#     state: "present" 
+#   with_items:
+#     - sudo
 
-- name: Add the user 'devops' and add it to 'sudo'
-  user:
-    name: devops
-    create_home: yes 
-    state: present 
-    generate_ssh_key: true
-    ssh_key_file: .ssh/id_rsa 
-    ssh_key_type: rsa 
+# - name: Add the user 'devops' and add it to 'sudo'
+#   user:
+#     name: devops
+#     create_home: yes 
+#     state: present 
+#     generate_ssh_key: true
+#     ssh_key_file: .ssh/id_rsa 
+#     ssh_key_type: rsa 
 
-- name: Add devops user to suduers
-  shell: "echo 'devops ALL=(ALL) NOPASSWD: ALL' | tee /etc/sudoers.d/devops"
+# - name: Add devops user to suduers
+#   shell: "echo 'devops ALL=(ALL) NOPASSWD: ALL' | tee /etc/sudoers.d/devops"
 
-- name: Add SSH key to 'devops'
-  authorized_key:
-    user: devops
-    state: present
-    key: "{{ lookup('file', pub_key) }}"
+# - name: Add SSH key to 'devops'
+#   authorized_key:
+#     user: devops
+#     state: present
+#     key: "{{ lookup('file', pub_key) }}"
 
 - name: Update all packages
   yum:
     name: '*'
     state: latest
     update_only: yes  
+
+- name: Ensure a list of yum packages are installed
+  yum:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+  vars:
+    packages:
+    - jq
+    - gettext
+    - bash-completion
+    - python-pip
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+    - amazon-linux-extras
+    
+
+- name: clean yum metadata cache
+  command: yum clean metadata
+  args:
+    warn: false
+
+
+- name: Install yq for yaml processing
+  shell:  |
+    echo 'yq() {
+    docker run --rm -i -v "${PWD}":/workdir mikefarah/yq "$@"
+    }' | tee -a ~/.bashrc && source ~/.bashrc
 
 - name: Add extras repository
   shell: yum-config-manager --enable extras  
@@ -40,3 +69,25 @@
 
 - name: Install extras epel
   shell: amazon-linux-extras install -y epel
+
+- name: Enable Some packages from amazon-linux-extras packages
+  shell: "amazon-linux-extras enable python3.8 ansible2 docker"
+
+- name: Ensure a list of yum packages are installed
+  yum:
+    name: "python3.8"
+    state: latest
+    update_cache: yes
+
+- name: Upgrade pip3
+  shell: "python3.8 -m pip install pip --upgrade"
+
+- name: Ensure Python pip packages are installed
+  pip:
+    name: "{{ packages }}"
+    executable: /usr/local/bin/pip3.8
+  vars:
+    packages:
+    - boto
+    - boto3
+    - docker-compose

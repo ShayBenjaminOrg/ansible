@@ -1,40 +1,13 @@
 ---
 # tasks file for docker
 
-- name: Ensure a list of yum packages are installed
+
+- name: Ensure docker is installed
   yum:
-    name: "{{ packages }}"
+    name: "docker"
     state: latest
     update_cache: yes
-  vars:
-    packages:
-    - python-pip
-    - yum-utils
-    - device-mapper-persistent-data
-    - lvm2
-    - amazon-linux-extras
 
-- name: Enable Some packages from amazon-linux-extras packages
-  shell: "amazon-linux-extras enable python3.8 ansible2 docker"
-
-- name: clean yum metadata cache
-  command: yum clean metadata
-  args:
-    warn: false
-
-- name: Ensure a list of yum packages are installed
-  yum:
-    name: "{{ packages }}"
-    state: latest
-    update_cache: yes
-  vars:
-    packages:
-    - python3.8
-    - ansible
-    - docker
-
-# tasks file for common-setup-role
-#
 - name: Add the user 'ec2-user' and add it to 'docker'
   user:
     name: ec2-user
@@ -44,10 +17,8 @@
 
 - name : "Create Groups"
   group:
-    name: "{{item}}"
+    name: "docker"
     state: "present" 
-  with_items:
-    - docker
 
 - ansible.builtin.user:
     name: ec2-user
@@ -61,15 +32,3 @@
     state: started
     enabled: yes
 
-- name: Upgrade pip3
-  shell: "python3.8 -m pip install pip --upgrade"
-
-- name: Ensure Python pip packages are installed
-  pip:
-    name: "{{ packages }}"
-    executable: /usr/local/bin/pip3.8
-  vars:
-    packages:
-    - boto
-    - boto3
-    - docker-compose
